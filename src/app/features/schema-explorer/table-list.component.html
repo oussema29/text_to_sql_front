@@ -1,0 +1,46 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-title">Explorateur de schéma</div>
+      <div class="page-subtitle">
+        @if (!loading()) {
+          {{ tables().length }} table{{ tables().length > 1 ? 's' : '' }} affichée{{ tables().length > 1 ? 's' : '' }}
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8D9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input
+      type="text"
+      placeholder="Rechercher une table…"
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchInput()"
+    />
+  </div>
+
+  <div class="table-card">
+    <div class="table-row table-head">
+      <div>Nom</div>
+      <div>Description</div>
+      <div class="col-count">Colonnes</div>
+    </div>
+
+    @if (loading()) {
+      <div class="empty-state">Chargement…</div>
+    } @else if (tables().length === 0) {
+      <div class="empty-state">Aucune table ne correspond à cette recherche.</div>
+    } @else {
+      @for (table of tables(); track table.name) {
+        <div class="table-row" (click)="openTable(table.name)">
+          <div class="table-name">{{ table.name }}</div>
+          <div class="table-desc">{{ table.description }}</div>
+          <div class="col-count">{{ table.columnCount }}</div>
+        </div>
+      }
+    }
+  </div>
+
+</div>

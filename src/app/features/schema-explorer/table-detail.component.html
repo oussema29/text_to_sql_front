@@ -1,0 +1,65 @@
+@if (loading()) {
+  <div class="page"><div class="empty-state">Chargement…</div></div>
+} @else if (notFound() || !table()) {
+  <div class="page">
+    <div class="empty-state">Table introuvable.</div>
+    <a routerLink="/schema" class="back-link">← Retour à l'explorateur de schéma</a>
+  </div>
+} @else {
+  <div class="page">
+
+    <div class="breadcrumb">
+      <a routerLink="/schema">Explorateur de schéma</a> / <span class="current">{{ table()!.name }}</span>
+    </div>
+
+    <div class="table-header">
+      <div class="table-title">{{ table()!.name }}</div>
+      @if (table()!.description) {
+        <div class="table-description">{{ table()!.description }}</div>
+      }
+    </div>
+
+    <div class="section-title">Colonnes</div>
+    <div class="columns-card">
+      <div class="columns-row columns-head">
+        <div>Nom</div>
+        <div>Type</div>
+        <div class="nullable-col">Nullable</div>
+        <div>Description</div>
+        <div>Exemples</div>
+      </div>
+
+      @for (col of table()!.columns; track col.name) {
+        <div class="columns-row">
+          <div class="col-name">{{ col.name }}</div>
+          <div class="col-type">{{ typeLabel(col.dataType, col.maxLength) }}</div>
+          <div class="nullable-col" [class.yes]="col.nullable" [class.no]="!col.nullable">
+            {{ col.nullable ? '✓' : '✗' }}
+          </div>
+          <div class="col-desc">{{ col.description }}</div>
+          <div class="col-samples">
+            @for (sample of col.samples; track sample) {
+              <span class="chip">{{ sample }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="section-title">Clés étrangères</div>
+    @if (table()!.foreignKeys.length === 0) {
+      <div class="fk-card empty-state">Aucune clé étrangère pour cette table.</div>
+    } @else {
+      <div class="fk-card">
+        @for (fk of table()!.foreignKeys; track fk.column) {
+          <div class="fk-row">
+            <span class="fk-column">{{ fk.column }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8D9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <a [routerLink]="['/schema', fk.referencedTable]" class="fk-target">{{ fk.referencedTable }}.{{ fk.referencedColumn }}</a>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+}
