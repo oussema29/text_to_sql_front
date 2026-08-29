@@ -1,0 +1,161 @@
+<div class="workspace">
+
+  <aside class="sessions-col">
+    <div class="sessions-header">
+      <span class="sessions-title">Sessions</span>
+      <button type="button" class="new-session-btn" (click)="onNewSession()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nouvelle
+      </button>
+    </div>
+
+    <div class="sessions-list">
+      @if (loadingSessions()) {
+        <div class="sessions-empty">Chargement…</div>
+      } @else if (sessions().length === 0) {
+        <div class="sessions-empty">Aucune session pour l'instant.</div>
+      } @else {
+        @for (session of sessions(); track session.id) {
+          <div
+            class="session-item"
+            [class.active]="session.id === currentSessionId()"
+            (click)="onSelectSession(session)"
+          >
+            <div class="session-title">{{ session.title }}</div>
+            @if (confirmDeleteId() === session.id) {
+              <div class="session-confirm">
+                <span>Supprimer ?</span>
+                <button type="button" class="confirm-yes" (click)="confirmDelete(session.id, $event)">Oui</button>
+                <button type="button" class="confirm-no" (click)="cancelDelete($event)">Annuler</button>
+              </div>
+            } @else {
+              <div class="session-meta">
+                <span class="session-date">{{ formatSessionDate(session.updatedAt) }}</span>
+                <button type="button" class="delete-btn" (click)="askDelete(session.id, $event)" title="Supprimer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  </aside>
+
+  <section class="chat-area">
+    <div class="chat-scroll">
+
+      @if (loadingMessages()) {
+        <div class="chat-loading">Chargement de la session…</div>
+      }
+
+      @if (!loadingMessages() && messages().length === 0 && !sendingQuestion()) {
+        <div class="chat-empty">
+          <p>Posez une question en français sur les données de la banque pour commencer.</p>
+        </div>
+      }
+
+      @for (message of messages(); track message.id) {
+        <div class="turn">
+          <div class="query-row">
+            <div class="query-icon">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </div>
+            <div class="query-text">{{ message.question }}</div>
+          </div>
+
+          <div class="response-card">
+            <div class="response-header">
+              <div class="status-badge" [class]="'status-' + message.status.toLowerCase()">
+                @if (message.status === 'SUCCESS') {
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                }
+                {{ statusLabel(message.status) }}
+              </div>
+              <div class="response-meta">
+                @if (message.status === 'SUCCESS') {
+                  {{ message.rowCount }} ligne{{ message.rowCount > 1 ? 's' : '' }} · {{ message.executionTimeMs }} ms
+                }
+              </div>
+            </div>
+
+            @if (message.generatedSql) {
+              <pre class="sql-block">{{ message.generatedSql }}</pre>
+            }
+
+            @if (message.status !== 'SUCCESS' && message.errorMessage) {
+              <div class="error-block">{{ message.errorMessage }}</div>
+            }
+
+            @if (message.status === 'SUCCESS' && message.data.length > 0) {
+              <div class="result-table-wrap">
+                <table class="result-table">
+                  <thead>
+                    <tr>
+                      @for (col of columnsOf(message.data[0]); track col) {
+                        <th>{{ col }}</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of message.data; track $index) {
+                      <tr>
+                        @for (col of columnsOf(row); track col) {
+                          <td>{{ row[col] }}</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+            @if (message.aiExplanation) {
+              <div class="explanation">{{ message.aiExplanation }}</div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (sendingQuestion(); as pending) {
+        <div class="turn">
+          <div class="query-row">
+            <div class="query-icon">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+            </div>
+            <div class="query-text">{{ pending }}</div>
+          </div>
+          <div class="response-card pending-card">
+            <span class="spinner"></span>
+            <span>Génération de la requête SQL en cours…</span>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    @if (errorBanner()) {
+      <div class="error-banner">{{ errorBanner() }}</div>
+    }
+
+    <div class="input-bar">
+      <div class="input-shell">
+        <textarea
+          rows="1"
+          placeholder="Posez une question sur vos données…"
+          [(ngModel)]="questionInput"
+          (keydown)="onInputKeydown($event)"
+        ></textarea>
+        <button
+          type="button"
+          class="send-btn"
+          [disabled]="!questionInput.trim() || !!sendingQuestion()"
+          (click)="submitQuestion()"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
