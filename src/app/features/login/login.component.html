@@ -1,0 +1,95 @@
+<div class="login-page">
+
+  <div class="brand-panel">
+    <svg class="brand-motif" viewBox="0 0 810 900" preserveAspectRatio="none">
+      <path d="M 920 -60 C 680 180, 560 340, 690 960" stroke="var(--bq-gold)" stroke-width="80" fill="none" opacity=".8" stroke-linecap="round"/>
+      <path d="M 975 -140 C 750 60, 630 210, 610 960" stroke="rgba(255,255,255,.10)" stroke-width="40" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="ring ring-outer"></div>
+    <div class="ring ring-inner"></div>
+
+    <div class="brand-block">
+      <div class="logo-plate">
+        <img src="images/bte-logo.jpg" alt="Banque de Tunisie et des Émirats">
+      </div>
+      <div class="brand-divider"></div>
+      <div>
+        <div class="bank-name">Banque de Tunisie et des Émirats</div>
+        <div class="product-name">BanQuery</div>
+      </div>
+    </div>
+
+    <div class="pitch">
+      <!-- Headline copy pending final wording, see BUILD_PLAN.md -->
+      <h1>L'assistant data interne de la BTE, en langage naturel.</h1>
+      <p>
+        Posez une question en français sur les données de la banque, obtenez une requête SQL
+        vérifiée et une réponse claire — réservé au personnel autorisé de la BTE.
+      </p>
+      <ul class="features">
+        <li>
+          <span class="feature-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bq-gold)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+          </span>
+          Accès sécurisé, réservé aux comptes internes BTE
+        </li>
+        <li>
+          <span class="feature-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bq-gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          Requêtes en lecture seule sur la base de données de production
+        </li>
+        <li>
+          <span class="feature-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bq-gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h13M3 10h9M3 15h6"/><circle cx="17" cy="16" r="4"/><path d="m20 19 2.5 2.5"/></svg>
+          </span>
+          Chaque question et requête est journalisée pour audit
+        </li>
+      </ul>
+    </div>
+
+    <div class="footer-note">© 2026 Banque de Tunisie et des Émirats — BanQuery, usage interne uniquement</div>
+  </div>
+
+  <div class="form-panel">
+    <div class="login-card">
+      <div class="accent-bar"></div>
+      <form class="card-body" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="card-header">
+          <div class="logo-chip">
+            <img src="images/bte-logo.jpg" alt="Banque de Tunisie et des Émirats">
+          </div>
+          <div>
+            <div class="card-title">Connexion</div>
+            <div class="card-subtitle">Espace interne BTE</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="username">Nom d'utilisateur</label>
+          <input id="username" type="text" formControlName="username" autocomplete="username" />
+        </div>
+
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input id="password" type="password" formControlName="password" autocomplete="current-password" />
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-banner">{{ errorMessage() }}</div>
+        }
+
+        <button type="submit" class="submit-btn" [disabled]="form.invalid || loading()">
+          @if (loading()) {
+            <span class="spinner"></span>
+          } @else {
+            Se connecter
+          }
+        </button>
+
+        <div class="card-footer">Compte fourni par la direction des systèmes d'information de la BTE.</div>
+      </form>
+    </div>
+  </div>
+
+</div>

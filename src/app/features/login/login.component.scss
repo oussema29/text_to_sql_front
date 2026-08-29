@@ -1,0 +1,277 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.login-page {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+// ---------- Brand panel ----------
+
+.brand-panel {
+  width: 56%;
+  height: 100%;
+  background: var(--bq-navy);
+  position: relative;
+  padding: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.brand-motif {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+.ring-outer { right: -140px; top: -140px; width: 360px; height: 360px; }
+.ring-inner { right: -60px; top: -60px; width: 200px; height: 200px; border-color: rgba(255, 255, 255, 0.08); }
+
+.brand-block {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo-plate {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  padding: 6px;
+  flex: 0 0 auto;
+
+  img { width: 100%; height: 100%; object-fit: contain; }
+}
+
+.brand-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.bank-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--bq-gold);
+}
+
+.product-name {
+  font-family: 'Public Sans', 'Roboto', sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 2px;
+}
+
+.pitch {
+  position: relative;
+  max-width: 480px;
+
+  h1 {
+    font-family: 'Public Sans', 'Roboto', sans-serif;
+    font-size: 37px;
+    line-height: 1.22;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(9, 14, 42, 0.35);
+    margin: 0 0 20px;
+  }
+
+  p {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.94);
+    text-shadow: 0 1px 6px rgba(9, 14, 42, 0.4);
+    margin: 0 0 32px;
+  }
+}
+
+.features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    font-size: 14px;
+  }
+}
+
+.feature-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: rgba(231, 168, 58, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.footer-note {
+  position: relative;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+// ---------- Form panel ----------
+
+.form-panel {
+  width: 44%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mat-sys-surface-container-lowest, #f5f6fa);
+}
+
+.login-card {
+  width: 380px;
+  background: #fff;
+  border: 1px solid #e1e3ea;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(23, 35, 94, 0.08), 0 6px 18px rgba(23, 35, 94, 0.1);
+  overflow: hidden;
+}
+
+.accent-bar {
+  height: 5px;
+  background: linear-gradient(90deg, var(--bq-navy) 0%, var(--bq-gold) 100%);
+}
+
+.card-body {
+  padding: 36px 40px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.logo-chip {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid #e1e3ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+
+  img { width: 100%; height: 100%; object-fit: contain; }
+}
+
+.card-title { font-size: 15px; font-weight: 700; line-height: 1.1; }
+.card-subtitle { font-size: 11.5px; color: #5f6373; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+
+  label { font-size: 13px; font-weight: 500; color: #5f6373; }
+
+  input {
+    height: 44px;
+    border: 1px solid #e1e3ea;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1b1b2a;
+    background: #fafafc;
+
+    &:focus {
+      outline: none;
+      border-color: var(--bq-navy);
+      box-shadow: 0 0 0 3px rgba(23, 35, 94, 0.12);
+    }
+  }
+}
+
+.error-banner {
+  background: var(--bq-maroon-light);
+  color: var(--bq-maroon);
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.submit-btn {
+  height: 46px;
+  border: none;
+  border-radius: 8px;
+  background: var(--bq-navy);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(23, 35, 94, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.card-footer {
+  margin-top: 22px;
+  font-size: 12px;
+  color: #5f6373;
+  text-align: center;
+  line-height: 1.5;
+}
