@@ -16,6 +16,15 @@ export class SessionService {
     });
   }
 
+  /** ADMIN-only, unscoped — every user's sessions. Never used by the query workspace sidebar,
+   *  only the audit log's session picker. See front_end_preparation.md's callout on /sessions vs
+   *  /sessions/all. */
+  loadAllSessions(username?: string, page = 0, size = 50) {
+    const params: Record<string, string | number> = { page, size };
+    if (username) params['username'] = username;
+    return this.http.get<PageResponse<ChatSessionDto>>('/api/v1/sessions/all', { params });
+  }
+
   getMessages(sessionId: string) {
     return this.http.get<ChatMessageDto[]>(`/api/v1/sessions/${sessionId}/messages`);
   }

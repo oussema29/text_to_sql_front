@@ -25,3 +25,15 @@ export interface TableDetailDto {
   columns: ColumnDto[];
   foreignKeys: ForeignKeyDto[];
 }
+
+export type ReindexAttemptStatus = 'DONE' | 'IN_PROGRESS' | 'FAILED';
+
+export interface ReindexStatus {
+  lastIndexedAt: string | null;
+  chunkCount: number | null;
+  reembedded: boolean | null;
+  attemptStatus: ReindexAttemptStatus | null;
+  lastError: string | null;
+  attemptStartedAt: string | null;
+  attemptFinishedAt: string | null;
+}

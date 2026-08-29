@@ -1,0 +1,144 @@
+<div class="page">
+
+  <aside class="sessions-col">
+    <div class="sessions-header">
+      <div class="sessions-title">{{ isAdmin() ? 'Sessions (toutes)' : 'Sessions' }}</div>
+
+      @if (isAdmin()) {
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A8D9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input
+            type="text"
+            placeholder="Filtrer par utilisateur…"
+            [(ngModel)]="usernameFilter"
+            (ngModelChange)="onUsernameFilterInput()"
+          />
+        </div>
+      }
+    </div>
+
+    @if (isAdmin()) {
+      <div class="reindex-panel">
+        <div class="reindex-row">
+          <span class="reindex-label">Indexation du schéma</span>
+          <button type="button" class="reindex-btn" [disabled]="reindexTriggering()" (click)="triggerReindex()">
+            @if (reindexTriggering() || reindexStatus()?.attemptStatus === 'IN_PROGRESS') {
+              <span class="spinner"></span> En cours…
+            } @else {
+              Relancer
+            }
+          </button>
+        </div>
+        @if (reindexMessage()) {
+          <div class="reindex-message">{{ reindexMessage() }}</div>
+        }
+        @if (reindexStatus(); as status) {
+          <div class="reindex-status">
+            @if (status.attemptStatus === 'DONE') {
+              Dernière réindexation réussie
+              @if (status.chunkCount !== null) { — {{ status.chunkCount }} chunks }
+              @if (status.attemptFinishedAt) { · {{ formatDateTime(status.attemptFinishedAt) }} }
+            } @else if (status.attemptStatus === 'FAILED') {
+              <span class="reindex-error">Échec : {{ status.lastError }}</span>
+            } @else if (status.attemptStatus === 'IN_PROGRESS') {
+              Réindexation en cours depuis {{ status.attemptStartedAt ? formatDateTime(status.attemptStartedAt) : '' }}
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <div class="sessions-list">
+      @if (loadingSessions()) {
+        <div class="empty-state">Chargement…</div>
+      } @else if (sessions().length === 0) {
+        <div class="empty-state">Aucune session.</div>
+      } @else {
+        @for (session of sessions(); track session.id) {
+          <div
+            class="session-item"
+            [class.active]="session.id === selectedSession()?.id"
+            (click)="onSelectSession(session)"
+          >
+            <div class="session-title">{{ session.title }}</div>
+            <div class="session-meta">
+              @if (isAdmin() && session.ownerUsername) {
+                {{ session.ownerUsername }} ·
+              }
+              {{ formatDateTime(session.updatedAt) }}
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </aside>
+
+  <section class="trail-area">
+    @if (!selectedSession()) {
+      <div class="empty-trail">
+        <p>Sélectionnez une session pour consulter son historique d'audit.</p>
+      </div>
+    } @else if (loadingTurns()) {
+      <div class="empty-trail"><p>Chargement…</p></div>
+    } @else if (notFound()) {
+      <div class="empty-trail"><p>Session introuvable.</p></div>
+    } @else {
+      <div class="trail-header">
+        <div class="trail-title">{{ selectedSession()!.title }}</div>
+        <div class="trail-subtitle">
+          Session de <strong>{{ selectedSession()!.ownerUsername }}</strong> · {{ turns().length }}
+          question{{ turns().length > 1 ? 's' : '' }}
+        </div>
+      </div>
+
+      @for (turn of turns(); track turn.messageId) {
+        <div class="turn-card">
+          <div class="turn-header" (click)="toggleTurn(turn.messageId)">
+            <svg
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" class="chevron"
+              [class.expanded]="isExpanded(turn.messageId)"
+            ><path d="m9 18 6-6-6-6"/></svg>
+            <div class="turn-question">{{ turn.question }}</div>
+            <div class="status-chip" [class]="'status-' + turn.finalStatus.toLowerCase()">
+              {{ statusLabel(turn.finalStatus) }}
+            </div>
+            <div class="turn-meta">
+              {{ formatTime(turn.createdAt) }} · {{ turn.attemptCount }}
+              tentative{{ turn.attemptCount > 1 ? 's' : '' }}
+            </div>
+          </div>
+
+          @if (isExpanded(turn.messageId)) {
+            <div class="attempts">
+              @for (attempt of turn.attempts; track attempt.attemptNumber) {
+                <div class="attempt-row">
+                  <div class="attempt-marker">
+                    <div class="attempt-number" [class.success]="attempt.status === 'SUCCESS'">
+                      {{ attempt.attemptNumber }}
+                    </div>
+                    @if (!$last) {
+                      <div class="attempt-connector"></div>
+                    }
+                  </div>
+                  <div class="attempt-body">
+                    <span class="attempt-status" [class]="'status-' + attempt.status.toLowerCase()">
+                      {{ statusLabel(attempt.status) }}
+                    </span>
+                    @if (attempt.generatedSql) {
+                      <pre class="sql-block">{{ attempt.generatedSql }}</pre>
+                    }
+                    @if (attempt.errorMessage) {
+                      <div class="error-block">{{ attempt.errorMessage }}</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  </section>
+
+</div>
