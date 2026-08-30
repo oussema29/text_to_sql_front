@@ -50,10 +50,38 @@ mark a step done on "it compiles" alone.
 
 ## Status
 
-- [ ] Step 1 — Scaffold
-- [ ] Step 2 — Auth
-- [ ] Step 3 — Query workspace + sessions
-- [ ] Step 4 — Schema explorer
-- [ ] Step 5 — Audit log
-- [ ] Step 6 — Schema metadata
-- [ ] Step 7 — Polish
+- [x] Step 1 — Scaffold. Verified (build + dev server). Details/problems: `etape_1.md`.
+- [x] Step 2 — Auth. Verified live against the running backend (guard redirect, login page render,
+  real 401 error handling, and successful admin login — shell + role-based nav confirmed). Details/
+  problems: `etape_2.md`.
+- [x] Step 3 — Query workspace + sessions. Verified live against the running backend (real question
+  end-to-end through the LLM pipeline, session appears in sidebar, resume hydrates full history,
+  delete with inline confirm). Tested with `analyst` only — see `etape_3.md` for what's not yet
+  double-checked with `admin`. Details/problems: `etape_3.md`.
+- [x] Step 4 — Schema explorer (`/tables` + `/tables/{name}` only; `/graph` diagram still a
+  fast-follow, not built). Verified live against the real ~90-table schema: search narrows correctly,
+  detail view renders columns/samples/FKs, FK links navigate correctly between tables. Details/
+  problems: `etape_4.md`.
+- [x] Step 5 — Audit log. Verified live: ANALYST sees only own sessions/trail (`GET /sessions`,
+  own question end-to-end round-tripped through the audit trail), ADMIN sees any session via
+  `/sessions/all` (+ username filter) and the reindex panel (trigger → poll → DONE, confirmed via
+  network requests: `POST /reindex` 202 then `GET /reindex/status` 200×N). Details/problems:
+  `etape_5.md`.
+- [x] Step 6 — Schema metadata (admin). Verified live against the real ~103-table generated
+  metadata: generate → poll → auto-navigate → auto-diff (confirmed "no differences" thanks to
+  diff-aware carry-forward), edit + save (patch round-trip confirmed), copy (also caught and fixed
+  the same route-reuse bug class from step 4), promote (status flip confirmed in the list),
+  adminGuard re-confirmed blocking ANALYST. Details/problems: `etape_6.md`.
+- [x] Step 7 — Polish. Shared error toast wired via `error.interceptor.ts`. Follow-up pass (still
+  step 7) closed nearly every gray area: all 4 pipeline business statuses (SUCCESS/SCHEMA_ERROR/
+  BLOCKED/IMPOSSIBLE) confirmed live with real LLM-generated failures, a real 403 confirmed via direct
+  fetch, and responsive rendering actually verified visually at 768/1024px (via a body-width DOM
+  constraint, since `resize_window` doesn't work in this environment) — which caught and fixed a real
+  bug: the audit log's turn header truncated the status badge mid-word at narrow widths, fixed with
+  `flex-wrap`. Only `EXECUTION_FAILED` and a genuine concurrent-409 remain unobserved (non-deterministic
+  LLM / hard to force from one browser). Details/problems: `etape_7.md`.
+
+## Open decisions not yet resolved (check before continuing)
+
+None — login headline copy resolved: "Posez la question. BanQuery écrit le SQL." (chosen 2026-08-29).
+
