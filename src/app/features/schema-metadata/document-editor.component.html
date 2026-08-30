@@ -1,0 +1,187 @@
+@if (loading()) {
+  <div class="page"><div class="empty-state">Chargement…</div></div>
+} @else if (notFound() || !document()) {
+  <div class="page">
+    <div class="empty-state">Document introuvable.</div>
+    <a routerLink="/metadata" class="back-link">← Retour aux métadonnées du schéma</a>
+  </div>
+} @else {
+  <div class="page">
+
+    <div class="page-header">
+      <div>
+        <div class="breadcrumb">
+          <a routerLink="/metadata">Métadonnées du schéma</a> /
+          {{ document()!.label ?? ('Document ' + document()!.id.slice(0, 8)) }}
+        </div>
+        <div class="page-title">
+          {{ mode() === 'edit' ? 'Modification du brouillon' : mode() === 'diff' ? 'Comparaison' : 'Aperçu' }}
+        </div>
+      </div>
+
+      <div class="toolbar">
+        @if (mode() !== 'diff') {
+          <div class="mode-toggle">
+            <button
+              type="button"
+              class="mode-btn"
+              [class.active]="mode() === 'preview'"
+              (click)="setMode('preview')"
+            >Aperçu</button>
+            <button
+              type="button"
+              class="mode-btn"
+              [class.active]="mode() === 'edit'"
+              [disabled]="!isEditable()"
+              [title]="!isEditable() ? 'Ce document a déjà été promu — copiez-le pour le modifier.' : ''"
+              (click)="setMode('edit')"
+            >Modifier</button>
+          </div>
+        }
+
+        @if (mode() === 'edit') {
+          <button type="button" class="btn" (click)="cancelEdit()">Annuler</button>
+          <button type="button" class="btn primary" [disabled]="saving()" (click)="saveEdit()">
+            {{ saving() ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+          </button>
+        } @else {
+          @if (!isEditable()) {
+            <button type="button" class="btn" [disabled]="copying()" (click)="copyForEditing()">
+              {{ copying() ? 'Copie…' : 'Copier pour modifier' }}
+            </button>
+          }
+          @if (!document()!.principal) {
+            <button type="button" class="btn" (click)="openDiffAgainstPrincipal()">Comparer au principal</button>
+            <button type="button" class="btn primary" [disabled]="promoting()" (click)="promote()">
+              {{ promoting() ? 'Promotion…' : 'Promouvoir' }}
+            </button>
+          }
+        }
+      </div>
+    </div>
+
+    @if (saveMessage()) {
+      <div class="save-message">{{ saveMessage() }}</div>
+    }
+
+    @if (mode() === 'diff') {
+      <div class="diff-view">
+        @if (loadingDiff()) {
+          <div class="empty-state">Calcul de la comparaison…</div>
+        } @else if (diff(); as d) {
+          <div class="diff-header">
+            Comparaison avec <strong>{{ diffAgainstLabel() }}</strong> (principal actuel)
+          </div>
+
+          @if (d.tablesAdded.length === 0 && d.tablesRemoved.length === 0 && d.tablesChanged.length === 0) {
+            <div class="empty-state">Aucune différence.</div>
+          }
+
+          @if (d.tablesAdded.length > 0) {
+            <div class="diff-section">
+              <div class="diff-section-title">Tables ajoutées</div>
+              <div class="diff-chip-list">
+                @for (t of d.tablesAdded; track t) { <span class="chip added">{{ t }}</span> }
+              </div>
+            </div>
+          }
+
+          @if (d.tablesRemoved.length > 0) {
+            <div class="diff-section">
+              <div class="diff-section-title">Tables supprimées</div>
+              <div class="diff-chip-list">
+                @for (t of d.tablesRemoved; track t) { <span class="chip removed">{{ t }}</span> }
+              </div>
+            </div>
+          }
+
+          @for (t of d.tablesChanged; track t.table) {
+            <div class="diff-table-card">
+              <div class="diff-table-name">{{ t.table }}</div>
+
+              @if (t.descriptionBefore !== t.descriptionAfter) {
+                <div class="diff-field">
+                  <div class="diff-field-label">Description</div>
+                  <div class="diff-before-after">
+                    <div class="diff-before">{{ t.descriptionBefore || '—' }}</div>
+                    <div class="diff-after">{{ t.descriptionAfter || '—' }}</div>
+                  </div>
+                </div>
+              }
+
+              @for (c of t.columnsChanged; track c.column) {
+                <div class="diff-field">
+                  <div class="diff-field-label">{{ c.column }}</div>
+                  <div class="diff-before-after">
+                    <div class="diff-before">
+                      {{ c.descriptionBefore || '—' }}
+                      @if (c.samplesBefore.length) { <div class="diff-samples">{{ c.samplesBefore.join(', ') }}</div> }
+                    </div>
+                    <div class="diff-after">
+                      {{ c.descriptionAfter || '—' }}
+                      @if (c.samplesAfter.length) { <div class="diff-samples">{{ c.samplesAfter.join(', ') }}</div> }
+                    </div>
+                  </div>
+                </div>
+              }
+
+              @if (t.columnsAdded.length > 0) {
+                <div class="diff-field">
+                  <div class="diff-field-label">Colonnes ajoutées</div>
+                  <div class="diff-chip-list">
+                    @for (c of t.columnsAdded; track c) { <span class="chip added">{{ c }}</span> }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    } @else {
+
+      <div class="search-row">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8D9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" placeholder="Rechercher une table à modifier…" [(ngModel)]="searchTerm" />
+        </div>
+        <div class="search-count">
+          {{ filteredTables().length }} table{{ filteredTables().length > 1 ? 's' : '' }} affichée{{ filteredTables().length > 1 ? 's' : '' }}
+          sur {{ workingTables.length }}
+        </div>
+      </div>
+
+      @for (table of filteredTables(); track table.name) {
+        <div class="table-card">
+          <div class="table-card-header">
+            <div class="table-name">{{ table.name }}</div>
+            @if (mode() === 'edit') {
+              <textarea class="field" rows="2" [(ngModel)]="table.description"></textarea>
+            } @else {
+              <div class="field readonly">{{ table.description || '—' }}</div>
+            }
+          </div>
+
+          <div class="columns-grid">
+            <div class="columns-row columns-head">
+              <div>Colonne</div><div>Type</div><div>Description</div><div>Exemples</div>
+            </div>
+            @for (col of table.columns; track col.name) {
+              <div class="columns-row">
+                <div class="label-ro">{{ col.name }}</div>
+                <div class="type-ro">{{ col.type }}{{ col.maxLength ? '(' + col.maxLength + ')' : '' }}</div>
+                @if (mode() === 'edit') {
+                  <textarea class="field" rows="1" [(ngModel)]="col.description"></textarea>
+                  <input class="field" type="text" [(ngModel)]="col.samplesText" placeholder="ex1, ex2" />
+                } @else {
+                  <div class="field readonly">{{ col.description || '—' }}</div>
+                  <div class="field readonly">{{ col.samplesText || '—' }}</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+  </div>
+}

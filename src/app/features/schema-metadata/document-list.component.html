@@ -1,0 +1,59 @@
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-title">Métadonnées du schéma</div>
+    <button type="button" class="generate-btn" [disabled]="generating()" (click)="triggerGenerate()">
+      @if (generating()) {
+        <span class="spinner"></span> Génération en cours…
+      } @else {
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
+        Générer une nouvelle version
+      }
+    </button>
+  </div>
+
+  @if (generateError()) {
+    <div class="generate-error">{{ generateError() }}</div>
+  }
+
+  @if (lastGeneratedAt()) {
+    <div class="page-subtitle">Document le plus récent : {{ formatDate(lastGeneratedAt()!) }} · {{ documents().length }} version{{ documents().length > 1 ? 's' : '' }}</div>
+  }
+
+  <div class="doc-table">
+    <div class="doc-row doc-head">
+      <div>Libellé</div>
+      <div>Créé par</div>
+      <div>Créé le</div>
+      <div>Statut</div>
+      <div class="actions-col">Actions</div>
+    </div>
+
+    @if (loading()) {
+      <div class="empty-state">Chargement…</div>
+    } @else if (documents().length === 0) {
+      <div class="empty-state">Aucun document. Générez une première version.</div>
+    } @else {
+      @for (doc of documents(); track doc.id) {
+        <div class="doc-row" [class.principal]="doc.principal" (click)="openDocument(doc)">
+          <div class="doc-label">{{ labelOf(doc) }}</div>
+          <div class="doc-meta">{{ doc.createdBy ?? 'système' }}</div>
+          <div class="doc-meta">{{ formatDate(doc.createdAt) }}</div>
+          <div>
+            <span class="status-chip" [class]="'status-' + statusOf(doc).toLowerCase()">{{ statusOf(doc) }}</span>
+          </div>
+          <div class="actions-col" (click)="$event.stopPropagation()">
+            @if (!doc.principal) {
+              <button type="button" class="action-btn" (click)="compareDocument(doc)">Comparer</button>
+            }
+            <button type="button" class="action-btn" (click)="openDocument(doc)">Voir</button>
+            @if (!doc.principal) {
+              <button type="button" class="action-btn primary" (click)="promoteDocument(doc, $event)">Promouvoir</button>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+</div>
