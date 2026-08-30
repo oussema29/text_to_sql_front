@@ -129,8 +129,9 @@ export class DocumentEditorComponent implements OnInit {
         this.saveMessage.set('Modifications enregistrées.');
       },
       error: () => {
+        // The shared error toast (error.interceptor.ts) surfaces the backend's message; staying in
+        // edit mode here (rather than reverting) lets the admin retry without re-typing anything.
         this.saving.set(false);
-        this.saveMessage.set("Échec de l'enregistrement.");
       },
     });
   }

@@ -213,11 +213,13 @@ textarea.field {
 
 .columns-grid {
   padding: 6px 20px;
+  overflow-x: auto;
 }
 
 .columns-row {
   display: grid;
   grid-template-columns: 160px 160px 1fr 220px;
+  min-width: 700px;
   padding: 12px 0;
   border-bottom: 1px solid #e1e3ea;
   align-items: center;

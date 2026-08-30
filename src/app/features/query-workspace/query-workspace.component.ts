@@ -25,7 +25,6 @@ export class QueryWorkspaceComponent implements OnInit {
   sendingQuestion = signal<string | null>(null);
   confirmDeleteId = signal<string | null>(null);
   questionInput = '';
-  errorBanner = signal<string | null>(null);
 
   currentSessionId = this.sessionService.currentSessionId;
 
@@ -47,13 +46,11 @@ export class QueryWorkspaceComponent implements OnInit {
   onNewSession(): void {
     this.sessionService.selectSession(null);
     this.messages.set([]);
-    this.errorBanner.set(null);
   }
 
   onSelectSession(session: ChatSessionDto): void {
     if (session.id === this.currentSessionId()) return;
     this.sessionService.selectSession(session.id);
-    this.errorBanner.set(null);
     this.loadingMessages.set(true);
     this.sessionService.getMessages(session.id).subscribe({
       next: (msgs) => {
@@ -94,7 +91,6 @@ export class QueryWorkspaceComponent implements OnInit {
 
     this.questionInput = '';
     this.sendingQuestion.set(question);
-    this.errorBanner.set(null);
     const wasNewSession = this.currentSessionId() === null;
 
     this.textToSqlService.postQuery(question, this.currentSessionId()).subscribe({
@@ -121,9 +117,8 @@ export class QueryWorkspaceComponent implements OnInit {
           );
         }
       },
-      error: (err) => {
+      error: () => {
         this.sendingQuestion.set(null);
-        this.errorBanner.set(err?.error?.error ?? "Une erreur est survenue lors de l'envoi de la question.");
       },
     });
   }
