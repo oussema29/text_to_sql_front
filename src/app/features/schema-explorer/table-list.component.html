@@ -9,6 +9,37 @@
         }
       </div>
     </div>
+
+    @if (isAdmin()) {
+      <div class="reindex-panel">
+        <div class="reindex-row">
+          <span class="reindex-label">Indexation du schéma</span>
+          <button type="button" class="reindex-btn" [disabled]="reindexTriggering()" (click)="triggerReindex()">
+            @if (reindexTriggering() || reindexStatus()?.attemptStatus === 'IN_PROGRESS') {
+              <span class="spinner"></span> En cours…
+            } @else {
+              Relancer
+            }
+          </button>
+        </div>
+        @if (reindexMessage()) {
+          <div class="reindex-message">{{ reindexMessage() }}</div>
+        }
+        @if (reindexStatus(); as status) {
+          <div class="reindex-status">
+            @if (status.attemptStatus === 'DONE') {
+              Dernière réindexation réussie
+              @if (status.chunkCount !== null) { — {{ status.chunkCount }} chunks }
+              @if (status.attemptFinishedAt) { · {{ formatDateTime(status.attemptFinishedAt) }} }
+            } @else if (status.attemptStatus === 'FAILED') {
+              <span class="reindex-error">Échec : {{ status.lastError }}</span>
+            } @else if (status.attemptStatus === 'IN_PROGRESS') {
+              Réindexation en cours depuis {{ status.attemptStartedAt ? formatDateTime(status.attemptStartedAt) : '' }}
+            }
+          </div>
+        }
+      </div>
+    }
   </div>
 
   <div class="search-box">

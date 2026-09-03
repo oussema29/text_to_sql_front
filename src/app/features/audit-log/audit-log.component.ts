@@ -3,11 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { SessionService } from '../../core/services/session.service';
 import { AuditLogService } from '../../core/services/audit-log.service';
-import { SchemaService } from '../../core/services/schema.service';
 import { ChatSessionDto } from '../../core/models/session.model';
 import { AuditLogTurnDto } from '../../core/models/audit.model';
 import { QueryStatus } from '../../core/models/chat.model';
-import { ReindexStatus } from '../../core/models/schema.model';
 
 @Component({
   selector: 'app-audit-log',
@@ -20,7 +18,6 @@ export class AuditLogComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   private sessionService = inject(SessionService);
   private auditLogService = inject(AuditLogService);
-  private schemaService = inject(SchemaService);
 
   isAdmin = computed(() => this.auth.isAdmin());
 
@@ -35,24 +32,12 @@ export class AuditLogComponent implements OnInit, OnDestroy {
   expandedTurns = signal<Set<string>>(new Set());
   notFound = signal(false);
 
-  reindexStatus = signal<ReindexStatus | null>(null);
-  reindexTriggering = signal(false);
-  reindexMessage = signal<string | null>(null);
-  private pollHandle: ReturnType<typeof setTimeout> | null = null;
-
   ngOnInit(): void {
     this.fetchSessions();
-    if (this.isAdmin()) {
-      this.schemaService.getReindexStatus().subscribe({
-        next: (status) => this.reindexStatus.set(status),
-        error: () => {},
-      });
-    }
   }
 
   ngOnDestroy(): void {
     if (this.filterDebounce) clearTimeout(this.filterDebounce);
-    if (this.pollHandle) clearTimeout(this.pollHandle);
   }
 
   onUsernameFilterInput(): void {
@@ -104,38 +89,6 @@ export class AuditLogComponent implements OnInit, OnDestroy {
 
   isExpanded(messageId: string): boolean {
     return this.expandedTurns().has(messageId);
-  }
-
-  triggerReindex(): void {
-    this.reindexTriggering.set(true);
-    this.reindexMessage.set(null);
-    this.schemaService.triggerReindex().subscribe({
-      next: () => {
-        this.reindexTriggering.set(false);
-        this.pollReindexStatus();
-      },
-      error: (err) => {
-        this.reindexTriggering.set(false);
-        if (err.status === 409) {
-          this.reindexMessage.set('Une réindexation est déjà en cours.');
-          this.pollReindexStatus();
-        } else {
-          this.reindexMessage.set("Échec du déclenchement de la réindexation.");
-        }
-      },
-    });
-  }
-
-  private pollReindexStatus(): void {
-    this.schemaService.getReindexStatus().subscribe({
-      next: (status) => {
-        this.reindexStatus.set(status);
-        if (status.attemptStatus === 'IN_PROGRESS') {
-          this.pollHandle = setTimeout(() => this.pollReindexStatus(), 3000);
-        }
-      },
-      error: () => {},
-    });
   }
 
   statusLabel(status: QueryStatus): string {
