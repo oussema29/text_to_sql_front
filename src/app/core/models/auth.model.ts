@@ -1,7 +1,8 @@
 export type UserRole = 'ANALYST' | 'ADMIN';
 
+// No `token` field: the JWT travels only in an httpOnly Set-Cookie header, never in the JSON body —
+// see plan_secure_token_storage.md.
 export interface LoginResponse {
-  token: string;
   username: string;
   role: UserRole;
 }

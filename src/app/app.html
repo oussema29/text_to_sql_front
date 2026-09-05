@@ -1,2 +1,8 @@
-<router-outlet />
+@if (auth.sessionChecked()) {
+  <router-outlet />
+} @else {
+  <div class="boot-loading">
+    <span class="spinner"></span>
+  </div>
+}
 <app-toast />

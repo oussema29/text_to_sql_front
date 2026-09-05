@@ -8,9 +8,18 @@ import { ToastService } from '../services/toast.service';
 /** Requests whose owning component already renders its own curated, localized error message —
  *  toasting these too would show the same failure twice (once curated, once as the backend's raw
  *  English exception text). Every other endpoint (including the async job *status* polls, which had
- *  no error feedback at all before this step) gets the shared toast. */
+ *  no error feedback at all before this step) gets the shared toast.
+ *
+ *  `/auth/me` also belongs here for a different reason: it's called once at app startup (see
+ *  AuthService's constructor) purely to check whether a session cookie already exists — a 401 there
+ *  just means "not logged in yet", not an expired session, so it must never show the "Session
+ *  expirée" toast a real mid-session 401 warrants. `/auth/logout` is best-effort (see
+ *  AuthService.logout()); a failure there shouldn't surface a generic toast either, since the
+ *  frontend has already forgotten the session locally either way. */
 const SELF_HANDLED_ERROR_URLS = new Set([
   '/api/v1/auth/login',
+  '/api/v1/auth/me',
+  '/api/v1/auth/logout',
   '/api/v1/schema/reindex',
   '/api/v1/schema/metadata/generate',
   '/api/v1/schema/metadata/generate/status',
