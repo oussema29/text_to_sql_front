@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Fast fail-fast check, mirrors the backend's build_job (mvnw compile): type-checks and
+      # bundles the whole app without the production config's minification/budget enforcement, so
+      # a broken build is caught here rather than only once test_job or publish_job also runs it.
+      - name: Build (development configuration)
+        run: npm run build -- --configuration development
+
+  test_job:
+    runs-on: ubuntu-latest
+    needs: build_job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # No backend/DB services needed here, unlike the backend's test_job — unit tests run against
+      # mocked services (see TestBed usage in *.spec.ts), never a real API.
+      - name: Run test suite
+        run: npm test -- --watch=false
+
+  publish_job:
+    runs-on: ubuntu-latest
+    needs: test_job
+    # Auto-publish on merge to main - same CI/CD boundary as the backend: everything above runs on
+    # every push, this only runs once code has actually landed on main and passed the full test
+    # suite. Also allowed on a manual workflow_dispatch run regardless of branch, so a human can
+    # publish on demand without needing a real merge.
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
