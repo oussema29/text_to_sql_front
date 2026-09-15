@@ -18,6 +18,13 @@ server {
         # rewrites that Location header to the FRONTEND's own origin, causing an infinite redirect
         # loop back to this exact URL (observed and confirmed live before this fix).
         proxy_pass ${BACKEND_SCHEME}://${BACKEND_URL}/api/;
+        # nginx does NOT send SNI (Server Name Indication) to an HTTPS upstream by default — it
+        # just connects to the resolved IP with no hostname attached. Render (like most cloud
+        # platforms) hosts many services behind shared IPs and relies entirely on SNI to know which
+        # certificate to present; without it, the handshake is rejected outright (confirmed live:
+        # "SSL_do_handshake() failed ... SSL alert number 40 (handshake_failure)"). Harmless when
+        # BACKEND_SCHEME=http (local docker-compose) — this directive only affects HTTPS upstreams.
+        proxy_ssl_server_name on;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
