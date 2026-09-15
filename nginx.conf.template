@@ -9,12 +9,15 @@ server {
     # required for the backend's httpOnly bq_token cookie (SameSite=Strict) and CSRF double-submit
     # cookie to work without cross-origin cookie issues.
     location /api/ {
-        # BACKEND_URL is substituted at container startup (envsubst, via nginx's own
-        # /etc/nginx/templates/ mechanism, see Dockerfile) from the BACKEND_URL env var —
-        # "backend:8080" locally (docker-compose service name), the real public backend URL in any
-        # other environment (e.g. Render). Same image everywhere; only this env var differs, at
-        # runtime, never baked in at build time.
-        proxy_pass http://${BACKEND_URL}/api/;
+        # BACKEND_URL/BACKEND_SCHEME are substituted at container startup (envsubst, via nginx's
+        # own /etc/nginx/templates/ mechanism, see Dockerfile). Locally: "backend:8080" over plain
+        # http (a Docker-internal service name, no TLS involved at all). On Render (or any platform
+        # where frontend/backend are separate public services with no private network between them):
+        # the real public backend hostname, over https — required, since the backend's own Render
+        # edge force-redirects plain-HTTP requests to HTTPS, and nginx's default proxy_redirect then
+        # rewrites that Location header to the FRONTEND's own origin, causing an infinite redirect
+        # loop back to this exact URL (observed and confirmed live before this fix).
+        proxy_pass ${BACKEND_SCHEME}://${BACKEND_URL}/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
