@@ -25,7 +25,13 @@ server {
         # "SSL_do_handshake() failed ... SSL alert number 40 (handshake_failure)"). Harmless when
         # BACKEND_SCHEME=http (local docker-compose) — this directive only affects HTTPS upstreams.
         proxy_ssl_server_name on;
-        proxy_set_header Host $host;
+        # Must be the BACKEND's own hostname, not $host (the original browser-facing request,
+        # i.e. the FRONTEND's hostname) — Render's edge routes by Host header, since many services
+        # share the same IPs. Forwarding the frontend's own Host while physically connecting to the
+        # backend's IP confused Render's edge into bouncing the request back toward the frontend,
+        # producing a genuine loop between the two edges (confirmed live: 508 Loop Detected, with
+        # X-Forwarded-For growing longer on each bounce).
+        proxy_set_header Host ${BACKEND_URL};
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
